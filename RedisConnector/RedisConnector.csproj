@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup> 
+		<TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+		<PackageId>Redis.Util.$(AssemblyName)</PackageId>
+		<Authors>Ahmed Al Sharu</Authors>
+		<Description>Library to connect to Redis, transform the distributed stream events to local events, and manage pending messages.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
+		<PackageTags>Redis, Stream, bus, queue, event</PackageTags>
+		<AssemblyVersion>2.2.0</AssemblyVersion>
+		<FileVersion>2.2.0</FileVersion>
+		<VersionPrefix>2.2.0</VersionPrefix>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+	</ItemGroup>
+
+</Project>
