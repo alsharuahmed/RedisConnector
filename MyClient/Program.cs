@@ -42,7 +42,7 @@ namespace ConsoleApp1
                        messageKey: "RequestCanceled",
                        message: "\"Hello World!\"");
 
-            var fuckMessage = new RedisMessage(
+            var otherMessage = new RedisMessage(
                       streamName: redisConfig.Streams.Values.ToList().First(),
                       messageKey: "OtherEvent",
                       message: "\"Hello World!\"");
@@ -55,7 +55,7 @@ namespace ConsoleApp1
             {
                 redisConnector.StreamAddAsync(requestAddedMessage),
                 redisConnector.StreamAddAsync(requestCanceledMessage),
-                redisConnector.StreamAddAsync(fuckMessage)
+                redisConnector.StreamAddAsync(otherMessage)
             };
              
             await Task.WhenAll(addTasks); 
