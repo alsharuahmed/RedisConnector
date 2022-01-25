@@ -9,9 +9,9 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
 		<PackageTags>Redis, Stream, bus, queue, event</PackageTags>
-		<AssemblyVersion>2.2.0</AssemblyVersion>
-		<FileVersion>2.2.0</FileVersion>
-		<VersionPrefix>2.2.0</VersionPrefix>
+		<AssemblyVersion>2.2.1</AssemblyVersion>
+		<FileVersion>2.2.1</FileVersion>
+		<VersionPrefix>2.2.1</VersionPrefix>
 	</PropertyGroup>
 
 	<ItemGroup>
