@@ -92,6 +92,9 @@ namespace RedisConnector
                 throw;
             }
 
+            if(_redisConfig.GeneralHandlerForAll && _redisConfig.AtomicHandlers)
+                return (generalEventDispatched == PublishStatus.Published && exactEventDispatched == PublishStatus.Published);
+
             return (generalEventDispatched == PublishStatus.Published || exactEventDispatched == PublishStatus.Published);
         }
 

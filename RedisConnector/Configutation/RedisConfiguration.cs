@@ -16,6 +16,7 @@ namespace RedisConnector
         public int ConnectRetry { get; set; }
         public PoisonMessage PoisonMessage { get; set; }
         public bool GeneralHandlerForAll { get; set; }
+        public bool AtomicHandlers { get; set; }
 
         public RedisConfiguration()
         {
