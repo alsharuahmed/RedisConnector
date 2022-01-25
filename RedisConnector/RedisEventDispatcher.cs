@@ -13,7 +13,7 @@ namespace RedisConnector
         private static IServiceProvider _serviceProvider;
         private static ILogger<RedisConnector> _logger;
         private static RedisConfiguration _redisConfig;
-        private IEnumerable<Type> _allTypesInThisAssembly;
+        private List<Type> _allTypesInThisAssembly = new List<Type>();
 
         private static RedisEventDispatcher _object = null;
         public static RedisEventDispatcher Object(
@@ -41,16 +41,22 @@ namespace RedisConnector
         }
 
         private void LoadAssembly()
-        {
-            _allTypesInThisAssembly = Assembly
-                .GetEntryAssembly()
-                .GetTypes()
-                .Where(t =>
-                    t.IsClass &&
-                    !t.IsAbstract &&
-                        (t.GetInterface(typeof(IHandler<>).Name.ToString()) != null ||
-                        t.GetInterface(typeof(IRedisMessage).Name.ToString()) != null ||
-                        t.IsSubclassOf(typeof(BaseHandler))));
+        { 
+            var assemblyNames = Assembly
+                        .GetEntryAssembly()
+                        .GetReferencedAssemblies().ToList();
+            assemblyNames.Add(Assembly.GetEntryAssembly().GetName());
+
+
+
+            foreach (var assembly in assemblyNames)
+            {
+                _allTypesInThisAssembly.AddRange(Assembly.Load(assembly).GetTypes().Where(t =>
+                t.IsClass &&
+                !t.IsAbstract &&
+                (t.GetInterface(typeof(IHandler<>).Name.ToString()) != null ||
+                t.IsSubclassOf(typeof(BaseHandler)))));
+            }
         }
 
         RedisEventDispatcher()
@@ -148,7 +154,7 @@ namespace RedisConnector
 
         private void SegregateTypes(ref Type generalBaseEventHandler, ref List<Type> handlers)
         {
-            foreach (Type type in _allTypesInThisAssembly)
+            foreach (Type type in _allTypesInThisAssembly.Where(t => t != null))
             {
                 if (type.GetInterface(typeof(IHandler<>).Name.ToString()) != null)
                 {

@@ -12,7 +12,6 @@ namespace RedisConnector
         public Dictionary<string, string> Streams { get; set; }
         public string Group { get; set; }
         public string Consumer { get; set; }
-        public int TimeOfWaitOnFailuresMs { get; set; }
         public int ExponentialRetryDeltaBackOffMilliseconds { get; set; }
         public int ConnectRetry { get; set; }
         public PoisonMessage PoisonMessage { get; set; }
@@ -28,8 +27,7 @@ namespace RedisConnector
 
 
             ConnectRetry = 2147483647;
-            ExponentialRetryDeltaBackOffMilliseconds = 5000;
-            TimeOfWaitOnFailuresMs = 5000;
+            ExponentialRetryDeltaBackOffMilliseconds = 5000; 
         }
     }
 }
