@@ -227,7 +227,7 @@ namespace RedisConnector
                                                             consumerName: _redisConfig.Consumer,
                                                             position: StreamPosition.NewMessages);
 
-                    redisMessages.AddRange(ConvertToRedisMessages(newMessages));
+                    redisMessages.AddRange(ConvertToRedisMessages(stream.Value, newMessages));
                 }
 
                 return redisMessages;
@@ -258,7 +258,7 @@ namespace RedisConnector
                                                            consumerName: _redisConfig.Consumer,
                                                            position: StreamPosition.Beginning);
 
-                    redisMessages.AddRange(ConvertToRedisMessages(pendingMessages));
+                    redisMessages.AddRange(ConvertToRedisMessages(stream.Value, pendingMessages));
                 }
 
                 return redisMessages;
@@ -271,7 +271,7 @@ namespace RedisConnector
             }
         }
 
-        private List<RedisMessage> ConvertToRedisMessages(StreamEntry[] messages)
+        private List<RedisMessage> ConvertToRedisMessages(string streamName, StreamEntry[] messages)
         { 
 #if NET5_0_OR_GREATER
                 List<RedisMessage> redisMessages = new();
@@ -282,7 +282,7 @@ namespace RedisConnector
             foreach (var msg in messages)
             {
                 var redisMessage = new RedisMessage(
-                                              streamName: GetStreamEntryValue(msg, RedisMessageTemplate.StreamName),
+                                              streamName: streamName,
                                               messageKey: GetStreamEntryValue(msg, RedisMessageTemplate.MessageKey),
                                               message: GetStreamEntryValue(msg, RedisMessageTemplate.Message));
 
@@ -299,8 +299,7 @@ namespace RedisConnector
             => streamEntry.Values.First(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase)).Value;
 
         private List<NameValueExtraProp> GetStreamEntryExtraProp(StreamEntry streamEntry)
-            => streamEntry.Values.Where(e =>
-                !string.Equals(e.Name, RedisMessageTemplate.StreamName, StringComparison.OrdinalIgnoreCase) &&
+            => streamEntry.Values.Where(e => 
                 !string.Equals(e.Name, RedisMessageTemplate.MessageKey, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(e.Name, RedisMessageTemplate.Message, StringComparison.OrdinalIgnoreCase)).ToList().ToNameValueExtraProp();
 

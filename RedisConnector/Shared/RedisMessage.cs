@@ -60,8 +60,7 @@ namespace RedisConnector
         public NameValueEntry[] ToEntry()
         {
             List<NameValueEntry> nameValueEntries = _extraProp;
-
-            nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.StreamName, StreamName));
+             
             nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.MessageKey, MessageKey));
             nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.Message, Message));
 
