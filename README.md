@@ -24,7 +24,7 @@ The configuration can easily be setup using the following variables:
       back off scheme to determine the interval between retries. Default: 5000. Required: true.
    - `ConnectRetry`: The number of times to repeat the initial connect cycle if no servers respond. Default: 2147483647. Required: true.
    - `GeneralHandlerForAll`: Enable the general handler (if the client implemented it) to handle any events, although it might have been handled by the event handler. Default:         false. Required: No.
-   - `AtomicHandlers` : When `GeneralHandlerForAll`=true, atomic handlers will be considered, therefore, if and only if both the specific and general handlers success the result       will be true otherwise false. Default: false. Required: No.
+   - `AtomicHandlers` : When `GeneralHandlerForAll`=true, atomic handlers will be considered, therefore, if you set `AtomicHandlers`=true means either all handlers (specific, general) get succeed to acknowledge the event or (for false value) any handler success will get the event acknowledged. Default: false. Required: No.
    - `EndPoints`: Array of objects (Server, Port) that points to the Redis cluster nodes.
       - `Server`: The ip address for a node.
       - `Port`: The port of the node.
@@ -32,7 +32,7 @@ The configuration can easily be setup using the following variables:
    - `PoisonMessage`: A bunch of configuration values that will manage dealing with pending/poison messages.
       - `Consumer`: The consumer name that the poison messages ownership will be changed to. Default: PoisonMessageConsumer. Required: true.
       - `pending_check_interval_minutes`: Interval (in minutes) to read the pending messages and try to republish it. Default: 30 mins. Required: true.
-      - `pending_retention_check_interval_minutes`: Interval (in minutes) to check the pending messages if marked as poison messages, therefore, change its ownership. Default:            30 mins. Required: true.
-      - `pending_retention_hours`: Default: 30 mins. Required: true.
-      - `pending_retention_minutes`:
-      - `pending_retention_ms`:
+      - `pending_retention_check_interval_minutes`: Interval (in minutes) to check the pending messages if marked as poison messages, therefore, change its ownership. Default:            5 mins. Required: true.
+      - `pending_retention_hours`: The number of hours to keep a message before mark it poison, secondary to pending_retention_minutes property. If not set, the value in pending_retention_hours is used. Default: 168 hour. Required: false.
+      - `pending_retention_minutes`: The number of minutes to keep a message before mark it poison, secondary to pending_retention_ms property. If not set, the value in pending_retention_minutes is used. Default: 0. Required: false.
+      - `pending_retention_ms`: The number of milliseconds to keep a message before mark it poison. Default: 0. Required: false.
