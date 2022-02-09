@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using RedisConnector.Core;
 
 namespace RedisConnector
 {

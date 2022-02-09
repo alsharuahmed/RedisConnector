@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RedisConnector.Core;
+using System;
 
 namespace RedisConnector
 {  

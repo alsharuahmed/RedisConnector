@@ -1,4 +1,6 @@
-﻿namespace RedisConnector
+﻿using RedisConnector.Core;
+
+namespace RedisConnector
 {
     public interface IHandler<T> where T : IRedisMessage
     {

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RedisConnector;
+using RedisConnector.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

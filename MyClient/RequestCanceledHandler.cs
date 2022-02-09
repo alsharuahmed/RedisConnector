@@ -1,7 +1,6 @@
 ﻿using RedisConnector;
+using RedisConnector.Core;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ConsoleApp1
 {

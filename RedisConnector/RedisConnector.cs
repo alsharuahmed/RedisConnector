@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RedisConnector;
+using RedisConnector.Core;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
+using RedisConnector.Core;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RedisConnector
+namespace RedisConnector.Core
 {
     public static class Util
     {
@@ -30,10 +31,10 @@ namespace RedisConnector
             return result;
         }
 
-        internal static NameValueExtraProp ToNameValueExtraProp(this NameValueEntry nameValueEntry)
+        public static NameValueExtraProp ToNameValueExtraProp(this NameValueEntry nameValueEntry)
             => new NameValueExtraProp(nameValueEntry.Name, nameValueEntry.Value);
 
-        internal static List<NameValueExtraProp> ToNameValueExtraProp(this List<NameValueEntry> list)
+        public static List<NameValueExtraProp> ToNameValueExtraProp(this List<NameValueEntry> list)
         {
 #if NET5_0_OR_GREATER
                 List<NameValueExtraProp> result = new();
@@ -42,12 +43,12 @@ namespace RedisConnector
 #endif 
             result.AddRange(list.Select(i => i.ToNameValueExtraProp()));
             return result;
-        } 
+        }
 
-        internal static double FromMinutesToMilliseconds(this double minutes)
+        public static double FromMinutesToMilliseconds(this double minutes)
             => TimeSpan.FromMinutes(minutes).TotalMilliseconds;
 
-        internal static double FromHoursToMilliseconds(this int hours)
+        public static double FromHoursToMilliseconds(this int hours)
             => TimeSpan.FromHours(hours).TotalMilliseconds;
         #endregion
     }
