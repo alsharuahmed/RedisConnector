@@ -6,7 +6,11 @@ namespace ConsoleApp1
 {
     public class GeneralEventHandler : BaseHandler
     {
-        public GeneralEventHandler(Publisher<RedisMessage> publisher) : base(publisher)
+        private readonly IRedisConnector _redisConnector;
+
+        public GeneralEventHandler(
+            Publisher<RedisMessage> publisher,
+            IRedisConnector redisConnector) : base(publisher)
         {
         }
 

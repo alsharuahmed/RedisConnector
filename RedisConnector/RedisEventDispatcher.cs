@@ -139,7 +139,8 @@ namespace RedisConnector
             {
                 Publisher<RedisMessage> publisherOfGeneral = new Publisher<RedisMessage>(redisMessage);
 
-                Activator.CreateInstance(
+                ActivatorUtilities.CreateInstance(
+                    _serviceProvider,
                     generalBaseEventHandler,
                     publisherOfGeneral);
 
