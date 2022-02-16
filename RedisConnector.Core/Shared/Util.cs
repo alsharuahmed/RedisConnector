@@ -8,11 +8,11 @@ using System.Linq;
 namespace RedisConnector.Core
 {
     public static class Util
-    {
+    { 
+        #region Extensions
         public static bool MinutesPassed(this DateTime startTime, double minutes) 
             => ((int)DateTime.Now.Subtract(startTime).TotalSeconds) % TimeSpan.FromMinutes(minutes).TotalSeconds == 0;
-
-        #region Extensions
+         
         public static T Deserialize<T>(this string value) where T : class => JsonConvert.DeserializeObject<T>(value);
 
         public static string Serialize(this object obj) => JsonConvert.SerializeObject(obj);
@@ -50,6 +50,15 @@ namespace RedisConnector.Core
 
         public static double FromHoursToMilliseconds(this int hours)
             => TimeSpan.FromHours(hours).TotalMilliseconds;
+
+        public static NameValueEntry[] ToEntry(this OutboxMessage message)
+        {
+            return new List<NameValueEntry>()
+            {
+                new NameValueEntry(RedisMessageTemplate.MessageKey, message.MessageKey),
+                new NameValueEntry(RedisMessageTemplate.Message, message.SerializedMessage)
+            }.ToArray();
+        }
         #endregion
     }
 }

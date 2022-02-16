@@ -2,6 +2,16 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+	  <PackageId>Redis.Util.$(AssemblyName)</PackageId>
+	  <Authors>Ahmed Al Sharu</Authors>
+	  <Description>Core library to connect to Redis, transform the distributed stream events to local events, and manage pending messages.</Description>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
+	  <AssemblyVersion>1.0.0</AssemblyVersion>
+	  <PackageTags>Redis Connect, Redis, Stream, bus, queue, event</PackageTags>
+	  <FileVersion>1.0.0</FileVersion>
+	  <VersionPrefix>1.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>

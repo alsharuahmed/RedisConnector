@@ -38,6 +38,19 @@ namespace RedisConnector
             SetDatabase();
         }
 
+        public async Task<string> StreamAddAsync(OutboxMessage message)
+        {
+            try
+            { 
+                return await _redisDb.StreamAddAsync(message.StreamName, message.ToEntry());
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                throw new RedisException("ReadConnector could not add the message", e);
+            }
+        }
+
         public async Task<string> StreamAddAsync(RedisMessage message)
         {
             try
