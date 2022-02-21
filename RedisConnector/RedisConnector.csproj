@@ -8,17 +8,21 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
-		<PackageTags>Redis, Stream, bus, queue, event</PackageTags>
-		<AssemblyVersion>2.2.3</AssemblyVersion>
-		<FileVersion>2.2.3</FileVersion>
-		<VersionPrefix>2.2.3</VersionPrefix>
+		<PackageTags>Redis Connect, Redis, Stream, bus, queue, event</PackageTags>
+		<AssemblyVersion>2.3.12</AssemblyVersion>
+		<FileVersion>2.3.12</FileVersion>
+		<VersionPrefix>2.3.12</VersionPrefix>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\RedisConnector.Core\RedisConnector.Core.csproj" />
+ 	  <ProjectReference Include="..\RedisConnector.Outbox\RedisConnector.Outbox.csproj" />
 	</ItemGroup>
 
 </Project>

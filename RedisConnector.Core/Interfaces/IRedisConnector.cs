@@ -1,10 +1,7 @@
-﻿using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
 
-namespace RedisConnector
+namespace RedisConnector.Core
 {
     //
     // Summary:
@@ -22,7 +19,10 @@ namespace RedisConnector
         //     The message of type RedisMessage. 
         // Returns:
         //     The ID of the newly created message. 
-        public Task<string> StreamAddAsync(RedisMessage redisMessage);
-        public Task ReadStreamAsync(); 
+        Task<string> StreamAddAsync(RedisMessage redisMessage, bool? enableOutbox = null);
+        Task ReadStreamAsync();
+        void SetContext(object context);
+        Task<string> AddOutboxToStreamAsync(Guid outboxId);
+        Task AddOutboxToStream();
     }
 }

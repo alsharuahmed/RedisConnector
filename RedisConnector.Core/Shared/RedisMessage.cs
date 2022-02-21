@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RedisConnector
+namespace RedisConnector.Core
 {
     public class RedisMessage : EventArgs, IRedisMessage
     {
@@ -11,7 +11,7 @@ namespace RedisConnector
         public string MessageId { get; private set; }
         public string MessageKey { get; }
         public string Message { get; } 
-
+        
         List<NameValueEntry> _extraProp { get; set; }
 
         public IReadOnlyList<NameValueExtraProp> ExtraProp
@@ -36,6 +36,10 @@ namespace RedisConnector
             string messageKey,
             string message) : this()
         {
+            streamName.Guard();
+            messageKey.Guard();
+            message.Guard();
+
             StreamName = streamName;
             MessageKey = messageKey;
             Message = message; 
@@ -43,7 +47,9 @@ namespace RedisConnector
 
 
         public RedisMessage SetMessageId(string messageId)
-        { 
+        {
+            messageId.Guard();
+
             MessageId = messageId;
             return this;
         }
@@ -60,8 +66,7 @@ namespace RedisConnector
         public NameValueEntry[] ToEntry()
         {
             List<NameValueEntry> nameValueEntries = _extraProp;
-
-            nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.StreamName, StreamName));
+             
             nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.MessageKey, MessageKey));
             nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.Message, Message));
 

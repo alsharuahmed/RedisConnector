@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using RedisConnector;
+using RedisConnector.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

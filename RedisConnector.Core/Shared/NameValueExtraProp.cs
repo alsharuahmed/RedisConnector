@@ -1,4 +1,4 @@
-﻿namespace RedisConnector
+﻿namespace RedisConnector.Core
 {
     public class NameValueExtraProp
     {

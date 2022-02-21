@@ -17,6 +17,7 @@ namespace RedisConnector
         public PoisonMessage PoisonMessage { get; set; }
         public bool GeneralHandlerForAll { get; set; }
         public bool AtomicHandlers { get; set; }
+        public bool EnableOutbox { get; set; }
 
         public RedisConfiguration()
         {

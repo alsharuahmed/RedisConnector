@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+	  <PackageId>Redis.Util.$(AssemblyName)</PackageId>
+	  <Authors>Ahmed Al Sharu</Authors>
+	  <Description>Core library to connect to Redis, transform the distributed stream events to local events, and manage pending messages.</Description>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
+	  <PackageTags>Redis Connect, Redis, Stream, bus, queue, event</PackageTags>
+	  <AssemblyVersion>1.0.5</AssemblyVersion>
+	  <FileVersion>1.0.5</FileVersion>
+	  <VersionPrefix>1.0.5</VersionPrefix>
+  </PropertyGroup>
+ 
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net5.0'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.13" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.22" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.22" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\RedisConnector.Core\RedisConnector.Core.csproj" />
+	</ItemGroup>
+
+</Project>
