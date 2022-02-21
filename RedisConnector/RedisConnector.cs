@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RedisConnector;
 using RedisConnector.Core;
@@ -12,6 +14,7 @@ namespace RedisConnector
 {
     public sealed class RedisConnector : IRedisConnector
     {
+        IServiceProvider _serviceProvider;
         Lazy<ConnectionMultiplexer> _lazyConnection;
         ConfigurationOptions _configurationOptions;
         readonly RedisConfiguration _redisConfig;
@@ -19,6 +22,7 @@ namespace RedisConnector
         IDatabase _redisDb;
 
         RedisEventDispatcher _redisEventDispatcher;
+        private object _context;
 
         RedisConnector()
         {
@@ -30,18 +34,100 @@ namespace RedisConnector
             IOptions<RedisConfiguration> redisConfig,
             ILogger<RedisConnector> logger) : this()
         {
+            this._serviceProvider = serviceProvider;
             this._logger = logger;
             this._redisConfig = redisConfig.Value;
 
-            _redisEventDispatcher = RedisEventDispatcher.Object(serviceProvider, _redisConfig, logger);
+            _redisEventDispatcher = RedisEventDispatcher.Object(_serviceProvider, _redisConfig, logger);
             InitConnection();
             SetDatabase();
         }
 
-        public async Task<string> StreamAddAsync(OutboxMessage message)
+        public void SetContext(object context)
+        {
+            context.Guard();
+            _context = (DbContext)context;
+        }
+
+        public async Task<string> StreamAddAsync(RedisMessage message, bool? enableOutbox = null)
         {
             try
-            { 
+            {
+                bool _enableOutbox = enableOutbox ?? _redisConfig.EnableOutbox;
+
+                if (_enableOutbox)
+                    return await AddToOutboxAsync(message);
+
+                return await AddToStreamAsync(message);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<string> AddOutboxToStreamAsync(Guid outboxId)
+        {
+            try
+            {
+                _context.Guard();
+
+                var outboxRepository = _serviceProvider.GetService<IOutboxRepository>();
+                outboxRepository.SetContext(_context);
+
+                var outboxMessage = await outboxRepository.GetByIdAsync(outboxId);
+                var result = await _redisDb.StreamAddAsync(outboxMessage.StreamName, outboxMessage.ToEntry());
+
+                if (result.HasValue)
+                {
+                    outboxRepository.Update(outboxMessage);
+                }
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                throw new RedisException($"ReadConnector could not add the outbox message (id: {outboxId}) to the stream.", e);
+            }
+        }
+
+        public async Task AddOutboxToStream()
+        {
+            try
+            {
+                _context.Guard();
+
+                var outboxRepository = _serviceProvider.GetService<IOutboxRepository>();
+                outboxRepository.SetContext(_context);
+
+                var outboxMessages = await outboxRepository.GetUnprocessedMessages();
+                 
+                outboxMessages.ToList().ForEach(async m =>
+                {
+                    try
+                    {
+                        var result = await AddToStreamAsync(m.ToRedisMessage());
+                        outboxRepository.Update(m);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError($"ReadConnector could not add the outbox message (id: {m.Id}) to the stream.", e);
+                    }
+
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                throw new RedisException($"ReadConnector could not add outbox messages to the stream.", e);
+            }
+        }
+
+        private async Task<string> AddToStreamAsync(RedisMessage message)
+        {
+            try
+            {
                 return await _redisDb.StreamAddAsync(message.StreamName, message.ToEntry());
             }
             catch (Exception e)
@@ -51,16 +137,23 @@ namespace RedisConnector
             }
         }
 
-        public async Task<string> StreamAddAsync(RedisMessage message)
+        private async Task<string> AddToOutboxAsync(RedisMessage message)
         {
             try
             {
-                return await _redisDb.StreamAddAsync(message.StreamName, message.ToEntry());
+                _context.Guard();
+                var outboxRepository = _serviceProvider.GetService<IOutboxRepository>();
+                outboxRepository.SetContext(_context);
+
+                var outboxMessage = message.ToOutboxMessage();
+
+                var result = await outboxRepository.InsertAsync(outboxMessage);
+                return outboxMessage.Id.ToString();
             }
             catch (Exception e)
             {
                 _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
-                throw new RedisException("ReadConnector could not add the message", e);
+                throw new RedisException("ReadConnector could not add the message to the outbox", e);
             }
         }
 
@@ -73,7 +166,7 @@ namespace RedisConnector
                 try
                 {
 #if NET5_0_OR_GREATER
-            List<RedisMessage> publishedMessages = new();
+                    List<RedisMessage> publishedMessages = new();
 #elif NETCOREAPP3_1
                     List<RedisMessage> publishedMessages = new List<RedisMessage>();
 #endif
@@ -81,7 +174,7 @@ namespace RedisConnector
                     bool pending_check_interval_minutes_enabled = dateTimeOfStartReading.MinutesPassed(_redisConfig.PoisonMessage.pending_check_interval_minutes);
 
                     if (pending_retention_check_interval_minutes_enabled)
-                    { 
+                    {
                         await ManagePoisonMessageAsync();
                     }
 
@@ -90,7 +183,7 @@ namespace RedisConnector
                     List<Task> readTasks = new List<Task>() { streamsReadGroupAsyncTask };
 
                     if (pending_check_interval_minutes_enabled)
-                    { 
+                    {
                         streamsReadPendingGroupAsyncTask = StreamsReadPendingGroupAsync();
                         readTasks.Add(streamsReadPendingGroupAsyncTask);
                     }
@@ -138,7 +231,7 @@ namespace RedisConnector
                 foreach (var stream in _redisConfig.Streams)
                 {
                     var pendingMessages = await _redisDb.StreamPendingMessagesAsync(stream.Value, _redisConfig.Group, int.MaxValue, _redisConfig.Consumer);
-                    
+
                     var poisonMessagesIds = pendingMessages
                         .Where(m =>
                             _redisConfig.PoisonMessage.pending_check_interval_minutes.FromMinutesToMilliseconds() * m.DeliveryCount >= pendingRetentionMs)
@@ -171,12 +264,12 @@ namespace RedisConnector
             try
             {
 #if NET5_0_OR_GREATER
-            List<Task> acknowledgeTasks = new();
+                List<Task> acknowledgeTasks = new();
 #elif NETCOREAPP3_1
                 List<Task> acknowledgeTasks = new List<Task>();
 #endif
 
-                redisMessages.ForEach(m => acknowledgeTasks.Add(_redisDb.StreamAcknowledgeAsync(m.StreamName, _redisConfig.Group, m.MessageId))); 
+                redisMessages.ForEach(m => acknowledgeTasks.Add(_redisDb.StreamAcknowledgeAsync(m.StreamName, _redisConfig.Group, m.MessageId)));
                 await Task.WhenAll(acknowledgeTasks);
             }
             catch (Exception e)
@@ -190,8 +283,8 @@ namespace RedisConnector
         private void AcknowledgeMsgs(List<RedisMessage> redisMessages)
         {
             try
-            { 
-                redisMessages.ForEach(m => _redisDb.StreamAcknowledge(m.StreamName, _redisConfig.Group, m.MessageId)); 
+            {
+                redisMessages.ForEach(m => _redisDb.StreamAcknowledge(m.StreamName, _redisConfig.Group, m.MessageId));
             }
             catch (Exception e)
             {
@@ -229,7 +322,7 @@ namespace RedisConnector
             try
             {
 #if NET5_0_OR_GREATER
-                List<RedisMessage> redisMessages = new(); 
+                List<RedisMessage> redisMessages = new();
 #elif NETCOREAPP3_1
                 List<RedisMessage> redisMessages = new List<RedisMessage>();
 #endif
@@ -287,9 +380,9 @@ namespace RedisConnector
         }
 
         private List<RedisMessage> ConvertToRedisMessages(string streamName, StreamEntry[] messages)
-        { 
+        {
 #if NET5_0_OR_GREATER
-                List<RedisMessage> redisMessages = new();
+            List<RedisMessage> redisMessages = new();
 #elif NETCOREAPP3_1
             List<RedisMessage> redisMessages = new List<RedisMessage>();
 #endif 
@@ -314,7 +407,7 @@ namespace RedisConnector
             => streamEntry.Values.First(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase)).Value;
 
         private List<NameValueExtraProp> GetStreamEntryExtraProp(StreamEntry streamEntry)
-            => streamEntry.Values.Where(e => 
+            => streamEntry.Values.Where(e =>
                 !string.Equals(e.Name, RedisMessageTemplate.MessageKey, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(e.Name, RedisMessageTemplate.Message, StringComparison.OrdinalIgnoreCase)).ToList().ToNameValueExtraProp();
 

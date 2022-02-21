@@ -36,6 +36,10 @@ namespace RedisConnector.Core
             string messageKey,
             string message) : this()
         {
+            streamName.Guard();
+            messageKey.Guard();
+            message.Guard();
+
             StreamName = streamName;
             MessageKey = messageKey;
             Message = message; 
@@ -43,7 +47,9 @@ namespace RedisConnector.Core
 
 
         public RedisMessage SetMessageId(string messageId)
-        { 
+        {
+            messageId.Guard();
+
             MessageId = messageId;
             return this;
         }

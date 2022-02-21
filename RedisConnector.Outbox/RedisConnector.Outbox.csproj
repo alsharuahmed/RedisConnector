@@ -9,26 +9,28 @@
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
 	  <PackageTags>Redis Connect, Redis, Stream, bus, queue, event</PackageTags>
-	  <AssemblyVersion>1.0.8</AssemblyVersion>
-	  <FileVersion>1.0.8</FileVersion>
-	  <VersionPrefix>1.0.8</VersionPrefix>
+	  <AssemblyVersion>1.0.5</AssemblyVersion>
+	  <FileVersion>1.0.5</FileVersion>
+	  <VersionPrefix>1.0.5</VersionPrefix>
   </PropertyGroup>
-
-  <ItemGroup> 
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
-  </ItemGroup>
-
+ 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" /> 
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net5.0'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.13" /> 
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.13" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.22" /> 
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.22" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.22" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\RedisConnector.Core\RedisConnector.Core.csproj" />
 	</ItemGroup>
 
 </Project>

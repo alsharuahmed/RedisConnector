@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using RedisConnector.Core;
 using StackExchange.Redis;
 using System;
@@ -8,11 +9,11 @@ using System.Linq;
 namespace RedisConnector.Core
 {
     public static class Util
-    { 
+    {
         #region Extensions
-        public static bool MinutesPassed(this DateTime startTime, double minutes) 
+        public static bool MinutesPassed(this DateTime startTime, double minutes)
             => ((int)DateTime.Now.Subtract(startTime).TotalSeconds) % TimeSpan.FromMinutes(minutes).TotalSeconds == 0;
-         
+
         public static T Deserialize<T>(this string value) where T : class => JsonConvert.DeserializeObject<T>(value);
 
         public static string Serialize(this object obj) => JsonConvert.SerializeObject(obj);
@@ -23,8 +24,8 @@ namespace RedisConnector.Core
         internal static List<NameValueEntry> ToNameValueEntry(this List<NameValueExtraProp> list)
         {
 #if NET5_0_OR_GREATER
-                List<NameValueEntry> result = new();
-#elif NETCOREAPP3_1
+            List<NameValueEntry> result = new();
+#elif NETCOREAPP1_0_OR_GREATER
             List<NameValueEntry> result = new List<NameValueEntry>();
 #endif  
             result.AddRange(list.Select(i => i.ToNameValueEntry()));
@@ -37,7 +38,7 @@ namespace RedisConnector.Core
         public static List<NameValueExtraProp> ToNameValueExtraProp(this List<NameValueEntry> list)
         {
 #if NET5_0_OR_GREATER
-                List<NameValueExtraProp> result = new();
+            List<NameValueExtraProp> result = new();
 #elif NETCOREAPP3_1
             List<NameValueExtraProp> result = new List<NameValueExtraProp>();
 #endif 
@@ -51,14 +52,42 @@ namespace RedisConnector.Core
         public static double FromHoursToMilliseconds(this int hours)
             => TimeSpan.FromHours(hours).TotalMilliseconds;
 
-        public static NameValueEntry[] ToEntry(this OutboxMessage message)
+        public static OutboxMessage ToOutboxMessage(this RedisMessage redisMessage)
         {
-            return new List<NameValueEntry>()
-            {
-                new NameValueEntry(RedisMessageTemplate.MessageKey, message.MessageKey),
-                new NameValueEntry(RedisMessageTemplate.Message, message.SerializedMessage)
-            }.ToArray();
+            return new OutboxMessage(
+                redisMessage.StreamName,
+                redisMessage.MessageKey,
+                redisMessage.Message);
         }
+
+        public static RedisMessage ToRedisMessage(this OutboxMessage outboxMessage)
+        {
+            return new RedisMessage(
+                outboxMessage.StreamName,
+                outboxMessage.MessageKey,
+                outboxMessage.Message);
+        }
+
+        #region Guard
+        public static void Guard(this object obj)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+        }
+
+        public static void Guard(this ModelBuilder builder)
+        {
+            if (builder == null)
+                throw new ArgumentNullException(nameof(builder));
+        }
+
+        public static void Guard(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentNullException(nameof(value));
+        }
+        #endregion
+
         #endregion
     }
 }

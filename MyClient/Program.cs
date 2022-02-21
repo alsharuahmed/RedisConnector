@@ -87,9 +87,8 @@ namespace ConsoleApp1
 
             services.Configure<RedisConfiguration>(configuration.GetSection("RedisConfiguration"));
 
-            services.AddLogging();
-
-            services.AddSingleton<IRedisConnector, RedisConnector.RedisConnector>();
+            services.RegisterRedisConnector();
+            services.AddLogging(); 
 
         }
     }

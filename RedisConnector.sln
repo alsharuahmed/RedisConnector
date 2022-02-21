@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisConnector", "RedisConn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyClient", "MyClient\MyClient.csproj", "{E36F0B6F-2BD6-4B98-A9F5-E79A2CD8C1F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisConnector.Core", "RedisConnector.Core\RedisConnector.Core.csproj", "{2E771E1F-7F2C-4A9C-A4A2-0722C721D26A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisConnector.Core", "RedisConnector.Core\RedisConnector.Core.csproj", "{2E771E1F-7F2C-4A9C-A4A2-0722C721D26A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisConnector.Outbox", "RedisConnector.Outbox\RedisConnector.Outbox.csproj", "{1B0898D6-6429-47BD-8D85-6C8127EA5B77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{2E771E1F-7F2C-4A9C-A4A2-0722C721D26A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E771E1F-7F2C-4A9C-A4A2-0722C721D26A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E771E1F-7F2C-4A9C-A4A2-0722C721D26A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B0898D6-6429-47BD-8D85-6C8127EA5B77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B0898D6-6429-47BD-8D85-6C8127EA5B77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B0898D6-6429-47BD-8D85-6C8127EA5B77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B0898D6-6429-47BD-8D85-6C8127EA5B77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

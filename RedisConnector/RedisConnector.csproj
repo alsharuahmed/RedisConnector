@@ -9,9 +9,9 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/alsharuahmed/RedisConnector</RepositoryUrl>
 		<PackageTags>Redis Connect, Redis, Stream, bus, queue, event</PackageTags>
-		<AssemblyVersion>2.2.2</AssemblyVersion>
-		<FileVersion>2.2.2</FileVersion>
-		<VersionPrefix>2.2.2</VersionPrefix>
+		<AssemblyVersion>2.3.12</AssemblyVersion>
+		<FileVersion>2.3.12</FileVersion>
+		<VersionPrefix>2.3.12</VersionPrefix>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\RedisConnector.Core\RedisConnector.Core.csproj" />
+ 	  <ProjectReference Include="..\RedisConnector.Outbox\RedisConnector.Outbox.csproj" />
 	</ItemGroup>
 
 </Project>

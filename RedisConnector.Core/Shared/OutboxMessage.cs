@@ -1,21 +1,19 @@
-﻿using System;
+﻿using StackExchange.Redis;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RedisConnector.Core
 {
     public class OutboxMessage
     {
-        public Guid Id { get; }
+        public Guid Id { get; private set; }
         public string StreamName { get; } 
-        public string MessageKey { get; }
-        [NotMapped]
-        public object Message { get; }
-        public string SerializedMessage
-        {
-            get => Message.Serialize();
-            set { }
-        }
+        public string MessageKey { get; } 
+        public string Message { get; private set; }
         public DateTime AddedAt { get; private set; }
+        public bool Processed { get; private set; }
+        public DateTime? ProcessedAt { get; private set; }
 
         public OutboxMessage()
         {
@@ -25,16 +23,37 @@ namespace RedisConnector.Core
            string streamName,
            string messageKey,
            object message)
-        { 
+        {
+            streamName.Guard();
+            messageKey.Guard();
+            message.Guard();
+
             StreamName = streamName;
             MessageKey = messageKey;
-            Message = message;
-        }
+            Message = message.Serialize();
+        } 
 
         public OutboxMessage Add()
         {
+            Id = Guid.NewGuid();
             AddedAt = DateTime.Now;
             return this;
-        }  
+        }
+
+        public OutboxMessage Update()
+        {
+            Processed = true;
+            ProcessedAt = DateTime.Now;
+            return this;
+        }
+
+        public NameValueEntry[] ToEntry()
+        {
+            return new List<NameValueEntry>()
+            {
+                new NameValueEntry(RedisMessageTemplate.MessageKey, MessageKey),
+                new NameValueEntry(RedisMessageTemplate.Message, Message)
+            }.ToArray();
+        }
     }
 }
