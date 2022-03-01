@@ -18,20 +18,20 @@ namespace RedisConnector.Core
         public OutboxMessage()
         {
         }
-
+         
         public OutboxMessage(
            string streamName,
            string messageKey,
-           object message)
+           string message)
         {
             streamName.Guard();
             messageKey.Guard();
-            message.Guard();
+            message.Guard(nameof(message));
 
             StreamName = streamName;
             MessageKey = messageKey;
-            Message = message.Serialize();
-        } 
+            Message = message;
+        }
 
         public OutboxMessage Add()
         {

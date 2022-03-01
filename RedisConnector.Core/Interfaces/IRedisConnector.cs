@@ -18,11 +18,11 @@ namespace RedisConnector.Core
         //   RedisMessage:
         //     The message of type RedisMessage. 
         // Returns:
-        //     The ID of the newly created message. 
-        Task<string> StreamAddAsync(RedisMessage redisMessage, bool? enableOutbox = null);
-        Task ReadStreamAsync();
-        void SetContext(object context);
-        Task<string> AddOutboxToStreamAsync(Guid outboxId);
-        Task AddOutboxToStream();
+        //     The ID of the newly created message.  
+        Task<string> StreamAddAsync(RedisMessage redisMessage, bool? enableOutbox = null, bool autoSave = false);
+        Task ReadStreamAsync(); 
+        Task<string> AddOutboxToStreamAsync(Guid outboxId, bool autoSave = true);
+        Task AddOutboxToStreamAsync(bool autoSave = true);
+        void SetContext(object dbContext);
     }
 }

@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 namespace RedisConnector.Core
 {
     public interface IOutboxRepository
-    {
-        void SetContext(object context);
-        Task<OutboxMessage> InsertAsync(OutboxMessage message);
-        OutboxMessage Update(OutboxMessage message);
+    { 
+        Task<OutboxMessage> InsertAsync(OutboxMessage message, bool autoSave);
+        Task<OutboxMessage> UpdateAsync(OutboxMessage message, bool autoSave);
         Task<IEnumerable<OutboxMessage>> GetAsync();
         Task<OutboxMessage> GetByIdAsync(Guid id);
         Task<IEnumerable<OutboxMessage>> GetUnprocessedMessages();
+        void SetDbContext(DbContext dbContext); 
     }
 }
