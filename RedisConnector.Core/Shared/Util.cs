@@ -69,10 +69,10 @@ namespace RedisConnector.Core
         }
 
         #region Guard
-        public static void Guard(this object obj)
+        public static void Guard(this object obj, string objName)
         {
             if (obj == null)
-                throw new ArgumentNullException(nameof(obj));
+                throw new ArgumentNullException(objName);
         }
 
         public static void Guard(this ModelBuilder builder)

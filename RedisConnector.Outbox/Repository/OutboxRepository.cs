@@ -3,66 +3,58 @@ using RedisConnector.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace RedisConnector.Outbox
 {
     public class OutboxRepository : IOutboxRepository
     { 
-        protected DbContext _context;
+        protected DbContext _dbContext;
 
         public OutboxRepository()
         {
         }
          
-        public void SetContext(object context)
+        public void SetDbContext(DbContext dbContext)
         {
-            context.Guard();
-            _context = (DbContext)context;
+            dbContext.Guard(nameof(dbContext));
+            _dbContext = dbContext;
         }
 
-        public DbContext GetContext()
-        {
-            _context.Guard();
-            return _context;
-        }
+        public DbContext GetContext() => _dbContext;
 
-        public async Task<OutboxMessage> InsertAsync(OutboxMessage message)
-        {
-            _context.Guard();
-
+        public async Task<OutboxMessage> InsertAsync(OutboxMessage message, bool autoSave)
+        { 
             message.Add();
-            var result = await _context.Set<OutboxMessage>().AddAsync(message); 
+            await _dbContext.Set<OutboxMessage>().AddAsync(message);
+
+            if (autoSave)
+                await SaveChangesAsync();
+
             return message;
         }
 
-        public async Task<OutboxMessage> GetByIdAsync(Guid id)
-        {
-            _context.Guard();
-            return await _context.Set<OutboxMessage>().FirstAsync(o => o.Id.Equals(id));
-        }
+        public async Task<OutboxMessage> GetByIdAsync(Guid id) 
+            => await _dbContext.Set<OutboxMessage>().FirstAsync(o => o.Id.Equals(id)); 
 
         public async Task<IEnumerable<OutboxMessage>> GetUnprocessedMessages()
-        {
-            _context.Guard();
-            return await _context.Set<OutboxMessage>().Where(m => !m.Processed).ToListAsync();
-        }
+            => await _dbContext.Set<OutboxMessage>().Where(m => !m.Processed).ToListAsync();
 
         public async Task<IEnumerable<OutboxMessage>> GetAsync()
-        {
-            _context.Guard();
-            return await _context.Set<OutboxMessage>().ToListAsync();
+            => await _dbContext.Set<OutboxMessage>().ToListAsync();
+
+        public async Task<OutboxMessage> UpdateAsync(OutboxMessage message, bool autoSave)
+        { 
+            message.Update();
+            _dbContext.Set<OutboxMessage>().Update(message);
+
+            if (autoSave)
+                await SaveChangesAsync();
+
+            return message;
         }
 
-        public OutboxMessage Update(OutboxMessage message)
-        {
-            _context.Guard();
-
-            message.Update();
-            var result = _context.Set<OutboxMessage>().Update(message);
-            return message;
-        }  
+        private async Task<int> SaveChangesAsync()
+            =>  await _dbContext.SaveChangesAsync();
     }
 }

@@ -11,15 +11,8 @@ namespace RedisConnector.Outbox
 {
     public static class ServiceCollectionExtensions
     {
-        public static void RegisterRedisConnectorOutbox(this IServiceCollection services, DbContext dbContext)
-        {
-            dbContext.Guard(); 
-
-            services.AddTransient<IOutboxRepository, OutboxRepository>();
-        }
-
         public static void RegisterRedisConnectorOutbox(this IServiceCollection services)
-        { 
+        {
             services.AddTransient<IOutboxRepository, OutboxRepository>();
         }
     }

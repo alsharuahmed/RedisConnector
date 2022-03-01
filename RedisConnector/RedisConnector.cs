@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RedisConnector;
 using RedisConnector.Core;
 using StackExchange.Redis;
 using System;
@@ -19,44 +17,60 @@ namespace RedisConnector
         ConfigurationOptions _configurationOptions;
         readonly RedisConfiguration _redisConfig;
         readonly ILogger<RedisConnector> _logger;
-        IDatabase _redisDb;
+        IDatabase _redisDb; 
 
         RedisEventDispatcher _redisEventDispatcher;
-        private object _context;
+        private IOutboxRepository _outboxRepository;
 
         RedisConnector()
         {
             _configurationOptions = new ConfigurationOptions();
-        }
+        } 
 
         public RedisConnector(
             IServiceProvider serviceProvider,
             IOptions<RedisConfiguration> redisConfig,
-            ILogger<RedisConnector> logger) : this()
+            ILogger<RedisConnector> logger
+            ) : this()
         {
             this._serviceProvider = serviceProvider;
             this._logger = logger;
-            this._redisConfig = redisConfig.Value;
+            this._redisConfig = redisConfig.Value; 
 
             _redisEventDispatcher = RedisEventDispatcher.Object(_serviceProvider, _redisConfig, logger);
             InitConnection();
             SetDatabase();
         }
 
-        public void SetContext(object context)
-        {
-            context.Guard();
-            _context = (DbContext)context;
+        public RedisConnector(
+           IServiceProvider serviceProvider,
+           IOptions<RedisConfiguration> redisConfig,
+           ILogger<RedisConnector> logger,
+           IOutboxRepository outboxRepository
+           ) : this(
+               serviceProvider,
+               redisConfig,
+               logger
+               )
+        { 
+            this._outboxRepository = outboxRepository; 
         }
 
-        public async Task<string> StreamAddAsync(RedisMessage message, bool? enableOutbox = null)
+        public void SetContext(object dbContext)
+        {
+            dbContext.Guard(nameof(dbContext)); 
+
+            _outboxRepository.SetDbContext((DbContext)dbContext);
+        }
+
+        public async Task<string> StreamAddAsync(RedisMessage message, bool? enableOutbox = null, bool autoSave = false)
         {
             try
             {
                 bool _enableOutbox = enableOutbox ?? _redisConfig.EnableOutbox;
 
                 if (_enableOutbox)
-                    return await AddToOutboxAsync(message);
+                    return await AddToOutboxAsync(message, autoSave);
 
                 return await AddToStreamAsync(message);
             }
@@ -66,21 +80,16 @@ namespace RedisConnector
             }
         }
 
-        public async Task<string> AddOutboxToStreamAsync(Guid outboxId)
+        public async Task<string> AddOutboxToStreamAsync(Guid outboxId, bool autoSave = true)
         {
             try
-            {
-                _context.Guard();
-
-                var outboxRepository = _serviceProvider.GetService<IOutboxRepository>();
-                outboxRepository.SetContext(_context);
-
-                var outboxMessage = await outboxRepository.GetByIdAsync(outboxId);
+            { 
+                var outboxMessage = await _outboxRepository.GetByIdAsync(outboxId);
                 var result = await _redisDb.StreamAddAsync(outboxMessage.StreamName, outboxMessage.ToEntry());
 
                 if (result.HasValue)
                 {
-                    outboxRepository.Update(outboxMessage);
+                    await _outboxRepository.UpdateAsync(outboxMessage, autoSave);
                 }
 
                 return result;
@@ -92,23 +101,18 @@ namespace RedisConnector
             }
         }
 
-        public async Task AddOutboxToStream()
+        public async Task AddOutboxToStreamAsync(bool autoSave = true)
         {
             try
             {
-                _context.Guard();
-
-                var outboxRepository = _serviceProvider.GetService<IOutboxRepository>();
-                outboxRepository.SetContext(_context);
-
-                var outboxMessages = await outboxRepository.GetUnprocessedMessages();
+                var outboxMessages = await _outboxRepository.GetUnprocessedMessages();
                  
                 outboxMessages.ToList().ForEach(async m =>
                 {
                     try
                     {
                         var result = await AddToStreamAsync(m.ToRedisMessage());
-                        outboxRepository.Update(m);
+                        await _outboxRepository.UpdateAsync(m, autoSave);
                     }
                     catch (Exception e)
                     {
@@ -137,18 +141,20 @@ namespace RedisConnector
             }
         }
 
-        private async Task<string> AddToOutboxAsync(RedisMessage message)
+        private async Task<string> AddToOutboxAsync(RedisMessage message, bool autoSave = false)
         {
             try
             {
-                _context.Guard();
-                var outboxRepository = _serviceProvider.GetService<IOutboxRepository>();
-                outboxRepository.SetContext(_context);
+                _outboxRepository.Guard(nameof(_outboxRepository));
 
-                var outboxMessage = message.ToOutboxMessage();
-
-                var result = await outboxRepository.InsertAsync(outboxMessage);
+                var outboxMessage = message.ToOutboxMessage(); 
+                var result = await _outboxRepository.InsertAsync(outboxMessage, autoSave);
                 return outboxMessage.Id.ToString();
+            }
+            catch(ArgumentException e)
+            {
+                _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                throw new RedisException("ReadConnector OutboxRepository is null", e);
             }
             catch (Exception e)
             {
@@ -209,8 +215,6 @@ namespace RedisConnector
                 }
             }
         }
-
-
 
         private async Task ManagePoisonMessageAsync()
         {
@@ -278,7 +282,6 @@ namespace RedisConnector
                 throw new InvalidOperationException($"Invalid {nameof(AcknowledgeMsgsAsync)} operation", e);
             }
         }
-
 
         private void AcknowledgeMsgs(List<RedisMessage> redisMessages)
         {
@@ -490,5 +493,7 @@ namespace RedisConnector
 
             }
         }
+
+        
     }
 }

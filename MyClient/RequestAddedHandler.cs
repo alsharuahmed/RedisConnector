@@ -42,7 +42,7 @@ namespace ConsoleApp1
 
             newMessage.AddExtraProp(new List<NameValueExtraProp>() { new NameValueExtraProp("parentMessageId", redisMessage.MessageId) });
 
-            var reuslt = _redisConnector.StreamAddAsync(newMessage).Result;
+            //var reuslt = _redisConnector.StreamAddAsync(newMessage).Result;
             #endregion
 
         }
