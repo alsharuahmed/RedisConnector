@@ -33,6 +33,6 @@ The configuration can easily be setup using the following variables:
       - `Consumer`: The consumer name that the poison messages ownership will be changed to. Default: PoisonMessageConsumer. Required: true.
       - `pending_check_interval_minutes`: Interval (in minutes) to read the pending messages and try to republish it. Default: 30 mins. Required: true.
       - `pending_retention_check_interval_minutes`: Interval (in minutes) to check the pending messages if marked as poison messages, therefore, change its ownership. Default:            5 mins. Required: true.
-      - `pending_retention_hours`: The number of hours to keep a message before mark it poison, secondary to pending_retention_minutes property. If not set, the value in pending_retention_hours is used. Default: 168 hour. Required: false.
-      - `pending_retention_minutes`: The number of minutes to keep a message before mark it poison, secondary to pending_retention_ms property. If not set, the value in pending_retention_minutes is used. Default: 0. Required: false.
+      - `pending_retention_hours`: The number of hours to keep a message before mark it poison, secondary to pending_retention_minutes property. If not set, the value in pending_retention_hours is used Default: 168 hour. Required: false.
+      - `pending_retention_minutes`: The number of minutes to keep a message before mark it poison, secondary to pending_retention_ms property. If not set, the value in pending_retention_minutes is used Default: 0. Required: false.
       - `pending_retention_ms`: The number of milliseconds to keep a message before mark it poison. Default: 0. Required: false.
