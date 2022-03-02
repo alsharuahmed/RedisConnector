@@ -101,7 +101,7 @@ namespace RedisConnector
             }
         }
 
-        public async Task AddOutboxToStreamAsync(bool autoSave = true)
+        public async Task AddOutboxToStreamAsync(bool autoSave = false)
         {
             try
             {
