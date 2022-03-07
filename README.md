@@ -8,7 +8,7 @@ High performance Redis client, Add messages, transform the received messages to 
 ![RedisConnector Container diagram (1)](https://user-images.githubusercontent.com/43896049/156996620-873fea70-6eff-4846-b7c4-e04f81d147fa.jpg)
 
 ## RedisConnector Component Diagram
-![RedisConnector Component Diagram](https://user-images.githubusercontent.com/43896049/150780733-cedcc8c3-f318-49eb-83b2-c01da129dc39.jpg)
+![RedisConnector Component Diagram (1)](https://user-images.githubusercontent.com/43896049/156997443-15068271-adf9-4bca-8e18-a8c5b399dc5b.jpg)
 
 ---
 
@@ -24,6 +24,7 @@ The configuration can easily be setup using the following variables:
    - `ConnectRetry`: The number of times to repeat the initial connect cycle if no servers respond. Default: 2147483647. Required: true.
    - `GeneralHandlerForAll`: Enable the general handler (if the client implemented it) to handle any events, although it might have been handled by the event handler. Default:         false. Required: No.
    - `AtomicHandlers` : When `GeneralHandlerForAll`=true, atomic handlers will be considered, therefore, if you set `AtomicHandlers`=true means either all handlers (specific, general) get succeed to acknowledge the event or (for false value) any handler success will get the event acknowledged. Default: false. Required: No.
+   - `EnableOutbox` : Enable outbox pattern where messages will presest in the app database before it get published to redis. Default: false. Required: No. (Hint: enable this feature will require a database migration).
    - `EndPoints`: Array of objects (Server, Port) that points to the Redis cluster nodes.
       - `Server`: The ip address for a node.
       - `Port`: The port of the node.
