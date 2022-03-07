@@ -17,7 +17,18 @@ namespace RedisConnector
         ConfigurationOptions _configurationOptions;
         readonly RedisConfiguration _redisConfig;
         readonly ILogger<RedisConnector> _logger;
-        IDatabase _redisDb; 
+
+        public IDatabase GetRedisDb()
+        {
+            IDatabase _redisDb;
+
+            if (_lazyConnection == null) 
+                InitConnection().Wait(); 
+
+            _redisDb = _lazyConnection.Value.GetDatabase();
+            return _redisDb;
+        }
+
 
         RedisEventDispatcher _redisEventDispatcher;
         private IOutboxRepository _outboxRepository;
@@ -25,7 +36,7 @@ namespace RedisConnector
         RedisConnector()
         {
             _configurationOptions = new ConfigurationOptions();
-        } 
+        }
 
         public RedisConnector(
             IServiceProvider serviceProvider,
@@ -35,11 +46,9 @@ namespace RedisConnector
         {
             this._serviceProvider = serviceProvider;
             this._logger = logger;
-            this._redisConfig = redisConfig.Value; 
+            this._redisConfig = redisConfig.Value;
 
             _redisEventDispatcher = RedisEventDispatcher.Object(_serviceProvider, _redisConfig, logger);
-            InitConnection();
-            SetDatabase();
         }
 
         public RedisConnector(
@@ -52,13 +61,13 @@ namespace RedisConnector
                redisConfig,
                logger
                )
-        { 
-            this._outboxRepository = outboxRepository; 
+        {
+            this._outboxRepository = outboxRepository;
         }
 
         public void SetContext(object dbContext)
         {
-            dbContext.Guard(nameof(dbContext)); 
+            dbContext.Guard(nameof(dbContext));
 
             _outboxRepository.SetDbContext((DbContext)dbContext);
         }
@@ -83,9 +92,10 @@ namespace RedisConnector
         public async Task<string> AddOutboxToStreamAsync(Guid outboxId, bool autoSave = true)
         {
             try
-            { 
+            {
                 var outboxMessage = await _outboxRepository.GetByIdAsync(outboxId);
-                var result = await _redisDb.StreamAddAsync(outboxMessage.StreamName, outboxMessage.ToEntry());
+                
+                var result = await GetRedisDb().StreamAddAsync(outboxMessage.StreamName, outboxMessage.ToEntry());
 
                 if (result.HasValue)
                 {
@@ -106,20 +116,19 @@ namespace RedisConnector
             try
             {
                 var outboxMessages = await _outboxRepository.GetUnprocessedMessages();
-                 
-                outboxMessages.ToList().ForEach(async m =>
+
+                for (int i = 0; i < outboxMessages.Count(); i++)
                 {
                     try
                     {
-                        var result = await AddToStreamAsync(m.ToRedisMessage());
-                        await _outboxRepository.UpdateAsync(m, autoSave);
+                        var result = await AddToStreamAsync(outboxMessages.ElementAt(i).ToRedisMessage());
+                        await _outboxRepository.UpdateAsync(outboxMessages.ElementAt(i), autoSave);
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError($"ReadConnector could not add the outbox message (id: {m.Id}) to the stream.", e);
+                        _logger.LogError($"ReadConnector could not add the outbox message (id: {outboxMessages.ElementAt(i).Id}) to the stream.", e);
                     }
-
-                });
+                }
             }
             catch (Exception e)
             {
@@ -132,7 +141,7 @@ namespace RedisConnector
         {
             try
             {
-                return await _redisDb.StreamAddAsync(message.StreamName, message.ToEntry());
+                return await GetRedisDb().StreamAddAsync(message.StreamName, message.ToEntry());
             }
             catch (Exception e)
             {
@@ -147,11 +156,11 @@ namespace RedisConnector
             {
                 _outboxRepository.Guard(nameof(_outboxRepository));
 
-                var outboxMessage = message.ToOutboxMessage(); 
+                var outboxMessage = message.ToOutboxMessage();
                 var result = await _outboxRepository.InsertAsync(outboxMessage, autoSave);
                 return outboxMessage.Id.ToString();
             }
-            catch(ArgumentException e)
+            catch (ArgumentException e)
             {
                 _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
                 throw new RedisException("ReadConnector OutboxRepository is null", e);
@@ -163,7 +172,7 @@ namespace RedisConnector
             }
         }
 
-        public async Task ReadStreamAsync()
+        public async Task ReadStreamAsync(bool alwaysOn)
         {
             DateTime dateTimeOfStartReading = DateTime.Now;
 
@@ -213,6 +222,9 @@ namespace RedisConnector
                 {
                     _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
                 }
+
+                if (!alwaysOn)
+                    return;
             }
         }
 
@@ -234,7 +246,7 @@ namespace RedisConnector
 
                 foreach (var stream in _redisConfig.Streams)
                 {
-                    var pendingMessages = await _redisDb.StreamPendingMessagesAsync(stream.Value, _redisConfig.Group, int.MaxValue, _redisConfig.Consumer);
+                    var pendingMessages = await GetRedisDb().StreamPendingMessagesAsync(stream.Value, _redisConfig.Group, int.MaxValue, _redisConfig.Consumer);
 
                     var poisonMessagesIds = pendingMessages
                         .Where(m =>
@@ -245,7 +257,7 @@ namespace RedisConnector
 
                     if (poisonMessagesIds.Count() > 0)
                     {
-                        var result = await _redisDb.StreamClaimIdsOnlyAsync(stream.Value, _redisConfig.Group, _redisConfig.PoisonMessage.Consumer, 0, poisonMessagesIds);
+                        var result = await GetRedisDb().StreamClaimIdsOnlyAsync(stream.Value, _redisConfig.Group, _redisConfig.PoisonMessage.Consumer, 0, poisonMessagesIds);
                         _logger.LogInformation($"Messages of the following ids have been claimed to Consumer:{_redisConfig.PoisonMessage.Consumer}, Group:{_redisConfig.Group}, ids:{{{string.Join(", ", result)}}}");
                     }
                 }
@@ -257,11 +269,7 @@ namespace RedisConnector
                 throw new InvalidOperationException("Invalid StreamsReadGroup operation", e); ;
             }
         }
-
-        private void SetDatabase()
-        {
-            _redisDb = _lazyConnection.Value.GetDatabase();
-        }
+         
 
         private async Task AcknowledgeMsgsAsync(List<RedisMessage> redisMessages)
         {
@@ -273,7 +281,7 @@ namespace RedisConnector
                 List<Task> acknowledgeTasks = new List<Task>();
 #endif
 
-                redisMessages.ForEach(m => acknowledgeTasks.Add(_redisDb.StreamAcknowledgeAsync(m.StreamName, _redisConfig.Group, m.MessageId)));
+                redisMessages.ForEach(m => acknowledgeTasks.Add(GetRedisDb().StreamAcknowledgeAsync(m.StreamName, _redisConfig.Group, m.MessageId)));
                 await Task.WhenAll(acknowledgeTasks);
             }
             catch (Exception e)
@@ -287,7 +295,7 @@ namespace RedisConnector
         {
             try
             {
-                redisMessages.ForEach(m => _redisDb.StreamAcknowledge(m.StreamName, _redisConfig.Group, m.MessageId));
+                redisMessages.ForEach(m => GetRedisDb().StreamAcknowledge(m.StreamName, _redisConfig.Group, m.MessageId));
             }
             catch (Exception e)
             {
@@ -332,7 +340,7 @@ namespace RedisConnector
 
                 foreach (var stream in _redisConfig.Streams)
                 {
-                    var newMessages = await _redisDb.StreamReadGroupAsync(
+                    var newMessages = await GetRedisDb().StreamReadGroupAsync(
                                                             key: stream.Value,
                                                             groupName: _redisConfig.Group,
                                                             consumerName: _redisConfig.Consumer,
@@ -363,7 +371,7 @@ namespace RedisConnector
 
                 foreach (var stream in _redisConfig.Streams)
                 {
-                    var pendingMessages = await _redisDb.StreamReadGroupAsync(
+                    var pendingMessages = await GetRedisDb().StreamReadGroupAsync(
                                                            key: stream.Value,
                                                            groupName: _redisConfig.Group,
                                                            consumerName: _redisConfig.Consumer,
@@ -414,30 +422,26 @@ namespace RedisConnector
                 !string.Equals(e.Name, RedisMessageTemplate.MessageKey, StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(e.Name, RedisMessageTemplate.Message, StringComparison.OrdinalIgnoreCase)).ToList().ToNameValueExtraProp();
 
-        private void InitConnection()
-        {
+        private async Task InitConnection()
+        { 
             SetAuthentication();
             SetEndPoints();
             SetRetryPolicy();
 
-            var connection = Connect(_configurationOptions);
+            var connection = await Connect(_configurationOptions);
             _lazyConnection = new Lazy<ConnectionMultiplexer>(() => connection);
-
-            InitGroups(connection);
+             
+            await CreateConsumerGroups();
         }
 
-        private void InitGroups(ConnectionMultiplexer connection)
-        {
-            CreateConsumerGroups(connection);
-        }
 
-        private ConnectionMultiplexer Connect(ConfigurationOptions configurationOptions)
+        private async Task<ConnectionMultiplexer> Connect(ConfigurationOptions configurationOptions)
         {
             ConnectionMultiplexer connection = null;
 
             try
             {
-                connection = ConnectionMultiplexer.Connect(configurationOptions);
+                connection = await ConnectionMultiplexer.ConnectAsync(configurationOptions);
                 return connection;
             }
             catch (RedisConnectionException e)
@@ -472,21 +476,21 @@ namespace RedisConnector
             _configurationOptions.User = _redisConfig.Username;
         }
 
-        private void CreateConsumerGroups(ConnectionMultiplexer connection)
+        private async Task CreateConsumerGroups()
         {
             foreach (var stream in _redisConfig.Streams)
             {
                 try
                 {
-                    var result = connection.GetDatabase().StreamCreateConsumerGroupAsync(stream.Value, _redisConfig.Group).Result;
+                    var result = await GetRedisDb().StreamCreateConsumerGroupAsync(stream.Value, _redisConfig.Group);
                 }
                 catch (Exception e)
                 {
-                    if (e.InnerException.Message.Contains("BUSYGROUP"))
-                        _logger.LogInformation($"Stream: {stream.Value}, Group: {_redisConfig.Group}, InnerException: {e.InnerException.Message}");
+                    if (e.Message.Contains("BUSYGROUP") || e.InnerException.Message.Contains("BUSYGROUP"))
+                        _logger.LogInformation($"Stream: {stream.Value}, Group: {_redisConfig.Group}, Message { e.Message }, InnerException: {e.InnerException?.Message}");
                     else
                     {
-                        _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                        _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace}, Message { e.Message }, InnerException: {e.InnerException}");
                         throw new RedisException("ReadConnector could not initiate", e);
                     }
                 }
@@ -494,6 +498,6 @@ namespace RedisConnector
             }
         }
 
-        
+
     }
 }

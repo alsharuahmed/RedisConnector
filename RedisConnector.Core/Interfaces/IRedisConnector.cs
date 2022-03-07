@@ -20,7 +20,7 @@ namespace RedisConnector.Core
         // Returns:
         //     The ID of the newly created message.  
         Task<string> StreamAddAsync(RedisMessage redisMessage, bool? enableOutbox = null, bool autoSave = false);
-        Task ReadStreamAsync(); 
+        Task ReadStreamAsync(bool alwaysOn); 
         Task<string> AddOutboxToStreamAsync(Guid outboxId, bool autoSave = true);
         Task AddOutboxToStreamAsync(bool autoSave = true);
         void SetContext(object dbContext);
