@@ -21,7 +21,7 @@ namespace RedisConnector.Outbox
             entityTypeBuilder.Property(x => x.MessageKey).IsRequired();
             entityTypeBuilder.Property(x => x.StreamName).IsRequired();
             entityTypeBuilder.Property(x => x.AddedAt).IsRequired(); 
-            entityTypeBuilder.Property(x => x.Message).IsRequired().HasColumnType("VARCHAR(MAX)");
+            entityTypeBuilder.Property(x => x.Message).IsRequired().HasColumnType("NVARCHAR(MAX)");
 
         }
     }

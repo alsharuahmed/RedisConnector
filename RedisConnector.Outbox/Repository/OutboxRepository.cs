@@ -38,7 +38,7 @@ namespace RedisConnector.Outbox
             => await _dbContext.Set<OutboxMessage>().FirstAsync(o => o.Id.Equals(id)); 
 
         public async Task<IEnumerable<OutboxMessage>> GetUnprocessedMessages()
-            => await _dbContext.Set<OutboxMessage>().Where(m => !m.Processed).ToListAsync();
+            => await _dbContext.Set<OutboxMessage>().Where(m => !m.Processed).OrderBy(m => m.AddedAt).ToListAsync();
 
         public async Task<IEnumerable<OutboxMessage>> GetAsync()
             => await _dbContext.Set<OutboxMessage>().ToListAsync();

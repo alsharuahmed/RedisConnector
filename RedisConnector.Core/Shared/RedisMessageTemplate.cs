@@ -4,5 +4,6 @@
     {  
         public const string MessageKey = "eventName"; 
         public const string Message = "eventData"; 
+        public const string AddedAt = "addedAt";
     }
 }

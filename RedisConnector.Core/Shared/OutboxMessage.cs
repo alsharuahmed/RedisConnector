@@ -12,6 +12,8 @@ namespace RedisConnector.Core
         public string MessageKey { get; } 
         public string Message { get; private set; }
         public DateTime AddedAt { get; private set; }
+        private DateTimeOffset _addedAtDateTimeOffset => AddedAt;
+        private long _addedAtUnix => _addedAtDateTimeOffset.ToUnixTimeSeconds();
         public bool Processed { get; private set; }
         public DateTime? ProcessedAt { get; private set; }
 
@@ -48,12 +50,13 @@ namespace RedisConnector.Core
         }
 
         public NameValueEntry[] ToEntry()
-        {
+        { 
             return new List<NameValueEntry>()
             {
                 new NameValueEntry(RedisMessageTemplate.MessageKey, MessageKey),
-                new NameValueEntry(RedisMessageTemplate.Message, Message)
+                new NameValueEntry(RedisMessageTemplate.Message, Message),
+                new NameValueEntry(RedisMessageTemplate.AddedAt, _addedAtUnix)
             }.ToArray();
-        }
+        } 
     }
 }

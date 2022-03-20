@@ -93,8 +93,8 @@ namespace RedisConnector
         {
             try
             {
-                var outboxMessage = await _outboxRepository.GetByIdAsync(outboxId);
-                
+                var outboxMessage = await _outboxRepository.GetByIdAsync(outboxId); 
+
                 var result = await GetRedisDb().StreamAddAsync(outboxMessage.StreamName, outboxMessage.ToEntry());
 
                 if (result.HasValue)
@@ -405,6 +405,7 @@ namespace RedisConnector
                                               messageKey: GetStreamEntryValue(msg, RedisMessageTemplate.MessageKey),
                                               message: GetStreamEntryValue(msg, RedisMessageTemplate.Message));
 
+                redisMessage.SetAddedAt(GetStreamEntryValue(msg, RedisMessageTemplate.AddedAt));
                 redisMessage.AddExtraProp(GetStreamEntryExtraProp(msg));
                 redisMessage.SetMessageId(msg.Id);
 
@@ -415,7 +416,7 @@ namespace RedisConnector
         }
 
         private string GetStreamEntryValue(StreamEntry streamEntry, string name)
-            => streamEntry.Values.First(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase)).Value;
+            => streamEntry.Values.FirstOrDefault(e => string.Equals(e.Name, name, StringComparison.OrdinalIgnoreCase)).Value;
 
         private List<NameValueExtraProp> GetStreamEntryExtraProp(StreamEntry streamEntry)
             => streamEntry.Values.Where(e =>

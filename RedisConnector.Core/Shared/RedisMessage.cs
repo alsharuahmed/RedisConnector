@@ -10,8 +10,9 @@ namespace RedisConnector.Core
         public string StreamName { get; }
         public string MessageId { get; private set; }
         public string MessageKey { get; }
-        public string Message { get; } 
-        
+        public string Message { get; }    
+        public DateTime? AddedAt { get; private set; }
+
         List<NameValueEntry> _extraProp { get; set; }
 
         public IReadOnlyList<NameValueExtraProp> ExtraProp
@@ -71,6 +72,17 @@ namespace RedisConnector.Core
             nameValueEntries.Add(new NameValueEntry(RedisMessageTemplate.Message, Message));
 
             return nameValueEntries.ToArray();
+        }
+
+        public RedisMessage SetAddedAt(string addedAtUnixEntry)
+        {
+            if (!String.IsNullOrWhiteSpace(addedAtUnixEntry))
+            {
+                var addedAtDateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(long.Parse(addedAtUnixEntry));
+                AddedAt = addedAtDateTimeOffset.DateTime.ToLocalTime(); 
+            }
+            
+            return this;
         }
     }
 }
