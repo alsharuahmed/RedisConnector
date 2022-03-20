@@ -36,6 +36,7 @@ The configuration can easily be set up using the following variables:
       - `pending_retention_hours`: The number of hours to keep a message before marking it poisons, secondary to pending_retention_minutes property. If not set, the value in pending_retention_hours is used Default: 168 hours. Required: false.
       - `pending_retention_minutes`: The number of minutes to keep a message before marking it poisons, secondary to pending_retention_ms property. If not set, the value in pending_retention_minutes is used Default: 0. Required: false.
       - `pending_retention_ms`: The number of milliseconds to keep a message before marking them as poison. Default: 0. Required: false.
+---
 
 ## Intervals Clarification
 ![Intervals](https://user-images.githubusercontent.com/43896049/159156043-97f7bae7-42f5-46e5-bb4e-abddd303e69a.jpg)
