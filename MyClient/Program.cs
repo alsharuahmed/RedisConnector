@@ -68,6 +68,11 @@ namespace ConsoleApp1
                          message: new RequestAddedMessage(guidKey, "Added").Serialize());
             requestAddedMessage.AddExtraProp(extraProp);
 
+            var myRequestAddedMessage = new RedisMessage(
+                         streamName: _redisConfiguration.Streams.Values.ToList().First(),
+                         messageKey: "MyRequestAdded",
+                         message: new MyRequestAddedMessage(guidKey, "Added").Serialize());
+
             var requestCanceledMessage = new RedisMessage(
                        streamName: _redisConfiguration.Streams.Values.ToList().First(),
                        messageKey: "RequestCanceled",
@@ -85,7 +90,8 @@ namespace ConsoleApp1
             List<Task> addTasks = new List<Task>()
             {
                 _redisConnector.StreamAddAsync(requestCanceledMessage),
-                _redisConnector.StreamAddAsync(otherMessage)
+                _redisConnector.StreamAddAsync(otherMessage),
+                _redisConnector.StreamAddAsync(myRequestAddedMessage)
             }; 
             await Task.WhenAll(addTasks);
 

@@ -103,7 +103,7 @@ namespace RedisConnector
         {
             try
             {
-                var handlerType = handlers.FirstOrDefault(e => e.Name.ToLower().Equals(redisMessage.MessageKey.ToLower()));
+                var handlerType = handlers.FirstOrDefault(e => e.Name.ToLower().Equals($"{redisMessage.MessageKey.ToLower()}handler"));
 
                 if (handlerType == null)
                     return PublishStatus.NoHandler;
