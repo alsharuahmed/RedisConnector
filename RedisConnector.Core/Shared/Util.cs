@@ -75,16 +75,16 @@ namespace RedisConnector.Core
                 throw new ArgumentNullException(objName);
         }
 
-        public static void Guard(this ModelBuilder builder)
+        public static void Guard(this ModelBuilder builder, string pramName)
         {
             if (builder == null)
-                throw new ArgumentNullException(nameof(builder));
+                throw new ArgumentNullException(pramName);
         }
 
-        public static void Guard(this string value)
+        public static void Guard(this string value, string pramName)
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException(pramName);
         }
         #endregion
 

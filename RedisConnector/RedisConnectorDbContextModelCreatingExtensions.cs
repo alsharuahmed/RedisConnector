@@ -8,7 +8,7 @@ namespace RedisConnector
     {
         public static void ConfigureRedisConnector(this ModelBuilder builder)
         {
-            builder.Guard();
+            builder.Guard(nameof(builder));
 
             builder.ConfigureRedisOutbox();
         }

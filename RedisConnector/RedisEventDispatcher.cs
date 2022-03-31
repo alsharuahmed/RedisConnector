@@ -42,21 +42,29 @@ namespace RedisConnector
         }
 
         private void LoadAssembly()
-        { 
-            var assemblyNames = Assembly
-                        .GetEntryAssembly()
-                        .GetReferencedAssemblies().ToList();
-            assemblyNames.Add(Assembly.GetEntryAssembly().GetName());
-
-
-
-            foreach (var assembly in assemblyNames)
+        {
+            try
             {
-                _allTypesInThisAssembly.AddRange(Assembly.Load(assembly).GetTypes().Where(t =>
-                t.IsClass &&
-                !t.IsAbstract &&
-                (t.GetInterface(typeof(IHandler<>).Name.ToString()) != null ||
-                t.IsSubclassOf(typeof(BaseHandler)))));
+                var assemblyNames = Assembly
+                                .GetEntryAssembly()
+                                .GetReferencedAssemblies().ToList();
+                assemblyNames.Add(Assembly.GetEntryAssembly().GetName());
+
+
+
+                foreach (var assembly in assemblyNames)
+                {
+                    _allTypesInThisAssembly.AddRange(Assembly.Load(assembly).GetTypes().Where(t =>
+                    t.IsClass &&
+                    !t.IsAbstract &&
+                    (t.GetInterface(typeof(IHandler<>).Name.ToString()) != null ||
+                    t.IsSubclassOf(typeof(BaseHandler)))));
+                }
+            }
+            catch (Exception e)
+            { 
+                _logger.LogCritical($"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                throw;
             }
         }
 

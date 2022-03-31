@@ -7,7 +7,7 @@ namespace RedisConnector.Outbox
     {
         public static void ConfigureRedisOutbox(this ModelBuilder builder)
         {
-            builder.Guard();  
+            builder.Guard(nameof(builder));  
 
             builder.ApplyConfiguration(new OutboxMessageEntityConfig()); 
         }

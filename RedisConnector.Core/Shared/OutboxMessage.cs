@@ -26,8 +26,8 @@ namespace RedisConnector.Core
            string messageKey,
            string message)
         {
-            streamName.Guard();
-            messageKey.Guard();
+            streamName.Guard(nameof(streamName));
+            messageKey.Guard(nameof(messageKey));
             message.Guard(nameof(message));
 
             StreamName = streamName;
