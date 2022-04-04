@@ -400,16 +400,24 @@ namespace RedisConnector
 
             foreach (var msg in messages)
             {
-                var redisMessage = new RedisMessage(
-                                              streamName: streamName,
-                                              messageKey: GetStreamEntryValue(msg, RedisMessageTemplate.MessageKey),
-                                              message: GetStreamEntryValue(msg, RedisMessageTemplate.Message));
+                try
+                {
+                    var redisMessage = new RedisMessage(
+                                                          streamName: streamName,
+                                                          messageKey: GetStreamEntryValue(msg, RedisMessageTemplate.MessageKey),
+                                                          message: GetStreamEntryValue(msg, RedisMessageTemplate.Message));
 
-                redisMessage.SetAddedAt(GetStreamEntryValue(msg, RedisMessageTemplate.AddedAt));
-                redisMessage.AddExtraProp(GetStreamEntryExtraProp(msg));
-                redisMessage.SetMessageId(msg.Id);
+                    redisMessage.SetAddedAt(GetStreamEntryValue(msg, RedisMessageTemplate.AddedAt));
+                    redisMessage.AddExtraProp(GetStreamEntryExtraProp(msg));
+                    redisMessage.SetMessageId(msg.Id);
 
-                redisMessages.Add(redisMessage);
+                    redisMessages.Add(redisMessage);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Could not convert redis message. Message id {msg.Id}. " +
+                        $"Throw the following exception: {e.Message}, stacktrace: {e.StackTrace} InnerException: {e.InnerException}");
+                }
             }
 
             return redisMessages;
